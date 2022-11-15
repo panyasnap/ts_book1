@@ -1,21 +1,15 @@
-import 'reflect-metadata';
-import express from 'express';
-
-const mongoose = require("mongoose");
-import {BooksRepository} from "./BookRouters";
-
-const port = process.env.port || 5000;
-const app = express();
-import container from './inversify.config';
-
+import container from "./infrestructure/inversify.config";
+import {BooksRepository} from "./books/BookService";
+import {Router} from "express";
+const router = Router()
 const bookRepository = container.get<BooksRepository>(BooksRepository)
-app.get(':id', async (req, res, next) => {
+router.get(':id', async (req, res, next) => {
 
     const book = await bookRepository.getBook(req.params.id);
     res.json(book);
 })
 
-app.get('/view/:id', async (req, res) => {
+router.get('/view/:id', async (req, res) => {
     const {id} = req.params
     try {
         const book = await bookRepository.getBook(id)
@@ -26,7 +20,7 @@ app.get('/view/:id', async (req, res) => {
 })
 
 
-app.post('/create', async (req, res) => {
+router.post('/create', async (req, res) => {
     const {title, description, authors, favorite, fileCover, fileName} = req.body;
     const newBook = new Book({title, description, authors, favorite, fileCover, fileName});
     try {
@@ -38,7 +32,7 @@ app.post('/create', async (req, res) => {
 })
 
 //put
-app.post('/update/:id', async (req, res) => {
+router.post('/update/:id', async (req, res) => {
     const {title, description, authors, favorite, fileCover, fileName} = req.body
     const {id} = req.params
     try {
@@ -50,7 +44,7 @@ app.post('/update/:id', async (req, res) => {
 })
 
 
-app.post('/delete/:id', async (req, res) => {
+router.post('/delete/:id', async (req, res) => {
     const {id} = req.params
     try {
         await bookRepository.deleteBook(id)
@@ -60,17 +54,4 @@ app.post('/delete/:id', async (req, res) => {
     }
 
 });
-const PORT = process.env.PORT || 3000
-const UrlDB = process.env.UrlDB
-
-async function start(PORT, UrlDB) {
-    try {
-        await mongoose.connect('mongodb://root:example@mongo:27017/');
-        app.listen(PORT, () => console.log(`listening on port ${PORT}`));
-    } catch (e) {
-        console.log(e)
-    }
-}
-
-start(PORT, UrlDB);
-//app.listen(port, () => console.log(`listening on port: ${port}`));
+export default router
